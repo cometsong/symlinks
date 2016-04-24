@@ -1,21 +1,36 @@
 # Makefile for symlinks
-CC     := gcc
-CFLAGS += $(shell getconf LFS_CFLAGS 2>/dev/null)
-OWNER   = root
-GROUP   = root
-MANDIR  = /usr/man/man8/symlinks.8
-BINDIR  = /usr/local/bin
+
+CC := gcc
+PREFIX := /usr/local
+BIN_DIR := $(PREFIX)/bin
+MAN_DIR := $(PREFIX)/share/man
+
+INSTALL := install
+INSTALL_PROGRAM := $(INSTALL) -c -m 0755
+INSTALL_DATA := $(INSTALL) -c -m 0644
+
+PROGRAM_NAME := symlinks
+
+manext = 8
+manname = $(PROGRAM_NAME).$(manext)
+
+COMPILER_OPTIONS := -Wall -Wstrict-prototypes -O2 -fstrict-aliasing -pipe
+CFLAGS := $(COMPILER_OPTIONS) $(CFLAGS_CONFIG) $(CFLAGS_EXTRA)
 
 .PHONY: all
 all: symlinks
 
 symlinks: symlinks.c
-	$(CC) -Wall -Wstrict-prototypes -O2 $(CFLAGS) -o symlinks symlinks.c
+	$(CC) $(CFLAGS) -o $(PROGRAM_NAME) symlinks.c
 
-install: all symlinks.8
-	$(INSTALL) -c -o $(OWNER) -g $(GROUP) -m 755 symlinks $(BINDIR)
-	$(INSTALL) -c -o $(OWNER) -g $(GROUP) -m 644 symlinks.8 $(MANDIR)
+install: all $(manname)
+	$(INSTALL_PROGRAM) symlinks $(DESTDIR)$(BIN_DIR)/$(PROGRAM_NAME)
+	$(INSTALL_DATA) $(manname) $(DESTDIR)$(MAN_DIR)/man$(manext)/$(manname)
+
+uninstall:
+	rm -f $(DESTDIR)$(BIN_DIR)/$(PROGRAM_NAME)
+	rm -f $(DESTDIR)$(MAN_DIR)/man$(manext)/$(manname)
 
 .PHONY: clean
 clean:
-	rm -f symlinks *.o core
+	rm -f $(PROGRAM_NAME) *.o core
